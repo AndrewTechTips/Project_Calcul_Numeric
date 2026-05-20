@@ -6,6 +6,7 @@ class DataLoader:
     """Utility class handling file imports across multiple formats."""
 
     @staticmethod
+    @st.cache_data(show_spinner=False)  # <--- Magia pentru performanță
     def parse_file(uploaded_file) -> pd.DataFrame:
         filename = uploaded_file.name
         try:
