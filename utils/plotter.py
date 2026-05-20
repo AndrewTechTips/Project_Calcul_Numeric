@@ -3,18 +3,23 @@ import plotly.graph_objects as go
 
 
 def generate_slope_field(f, x_range, y_range, density=20):
+    """Builds the vector field background to show slope direction."""
     x_grid = np.linspace(x_range[0], x_range[1], density)
     y_grid = np.linspace(y_range[0], y_range[1], density)
+
     X, Y = np.meshgrid(x_grid, y_grid)
     U = np.ones_like(X)
 
     try:
         V = f(X, Y)
+        # normalize vectors so arrows look consistent
         N = np.sqrt(U**2 + V**2)
         U, V = U / N, V / N
     except:
+        # fallback to zeros if the function domain fails
         U, V = np.zeros_like(X), np.zeros_like(X)
 
+    # scale lines for visual clarity
     length = (x_range[1] - x_range[0]) / (density * 1.5)
 
     x_lines, y_lines = [], []
@@ -22,6 +27,8 @@ def generate_slope_field(f, x_range, y_range, density=20):
         for j in range(density):
             x_pos, y_pos = X[i, j], Y[i, j]
             dx, dy = U[i, j] * length, V[i, j] * length
+
+            # create the line segment with a None gap to break the trace
             x_lines.extend([x_pos - dx / 2, x_pos + dx / 2, None])
             y_lines.extend([y_pos - dy / 2, y_pos + dy / 2, None])
 
@@ -31,21 +38,27 @@ def generate_slope_field(f, x_range, y_range, density=20):
 def build_cinematic_plot(
     x_vals: np.ndarray, y_dict: dict, active_methods: list, f_callable, show_field: bool
 ) -> go.Figure:
+    """Generates the interactive Plotly animation with frames."""
     fig = go.Figure()
+
+    # UI colors for each method
     colors = {
         "Euler": "#f43f5e",
         "Heun": "#3b82f6",
         "RK4": "#10b981",
         "Exact": "#f8fafc",
     }
+
     methods_to_plot = [m for m in active_methods if m in y_dict]
 
+    # optional: render the background vector field
     if show_field:
         y_all_vals = [val for method in methods_to_plot for val in y_dict[method]]
         y_min, y_max = min(y_all_vals) - 0.5, max(y_all_vals) + 0.5
         x_lines, y_lines = generate_slope_field(
             f_callable, (x_vals[0], x_vals[-1]), (y_min, y_max)
         )
+
         fig.add_trace(
             go.Scatter(
                 x=x_lines,
@@ -57,6 +70,7 @@ def build_cinematic_plot(
             )
         )
 
+    # setup initial data points
     for method in methods_to_plot:
         fig.add_trace(
             go.Scatter(
@@ -71,6 +85,7 @@ def build_cinematic_plot(
             )
         )
 
+    # create animation frames
     frames = []
     for k in range(1, len(x_vals) + 1):
         frame_data = []
@@ -78,10 +93,12 @@ def build_cinematic_plot(
             frame_data.append(go.Scatter(x=x_lines, y=y_lines))
         for method in methods_to_plot:
             frame_data.append(go.Scatter(x=x_vals[:k], y=y_dict[method][:k]))
+
         frames.append(go.Frame(data=frame_data, name=str(k)))
 
     fig.frames = frames
 
+    # setup play/pause controls and sliders
     fig.update_layout(
         updatemenus=[
             dict(
@@ -150,19 +167,18 @@ def build_cinematic_plot(
         paper_bgcolor="rgba(0,0,0,0)",
         font=dict(color="#94a3b8"),
         title=dict(
-            text="Numerical Integration Phase Analysis",
-            font=dict(size=22, color="#ffffff"),
+            text="Numerical Integration Progress", font=dict(size=22, color="#ffffff")
         ),
         xaxis=dict(
             showgrid=True,
             gridcolor="rgba(255,255,255,0.04)",
-            title="Domain (X)",
+            title="X Axis",
             zerolinecolor="rgba(255,255,255,0.1)",
         ),
         yaxis=dict(
             showgrid=True,
             gridcolor="rgba(255,255,255,0.04)",
-            title="Solution (Y)",
+            title="Y Axis",
             zerolinecolor="rgba(255,255,255,0.1)",
         ),
         hovermode="x unified",
