@@ -10,17 +10,20 @@ from utils import DataLoader, build_cinematic_plot
 import plotly.graph_objects as go
 
 # Configurare Pagină și UI
-st.set_page_config(page_title="ODE Numerical Solver", layout="wide", page_icon="🌌")
+st.set_page_config(
+    page_title="ODE Numerical Solver", layout="wide", page_icon=":material/functions:"
+)
 apply_premium_styles()
 
-st.title("✨ Project: Advanced Numerical Methods Analyzer")
+# Folosim Material Icons direct în text
+st.title(":material/science: Project: Advanced Numerical Methods Analyzer")
 st.markdown(
     "<p style='color: #94a3b8; font-size: 1.1rem;'>Interactive resolution of ODEs (First-Order) mapping mathematical abstractions onto computed reality.</p>",
     unsafe_allow_html=True,
 )
 
 with st.sidebar:
-    st.header("⚙️ Configuration Hub")
+    st.header(":material/settings: Configuration Hub")
 
     input_mode = st.radio(
         "Data Source:",
@@ -32,7 +35,8 @@ with st.sidebar:
     x0, y0, x_end, steps = 0.0, 1.0, 2.0, 10
 
     if input_mode == "Default Scenario (Demo)":
-        st.success("Demo logic applied automatically.")
+        # Am înlocuit success-ul clasic cu un mesaj mai subtil
+        st.info("Demo logic applied automatically.", icon=":material/smart_toy:")
         func_str = "x - y + 2"
         exact_func_str = "x + 1 + exp(-x)"
         x0, y0, x_end, steps = 0.0, 2.0, 3.0, 15
@@ -70,22 +74,26 @@ with st.sidebar:
                     if "exact_func" in df_input.columns
                     else ""
                 )
-                st.success(f"Parsed file: {uploaded_file.name}")
+                # Toast notification este mult mai premium decât un block de success
+                st.toast(
+                    f"Parsed file: {uploaded_file.name}", icon=":material/check_circle:"
+                )
             else:
                 st.stop()
         else:
-            st.warning("Awaiting file upload...")
+            st.warning("Awaiting file upload...", icon=":material/upload_file:")
             st.stop()
 
     st.divider()
-    st.subheader("👁️ Visual Layers")
+    st.subheader(":material/layers: Visual Layers")
     show_euler = st.checkbox("Euler Method", value=True)
     show_heun = st.checkbox("Heun Method", value=True)
     show_rk4 = st.checkbox("Runge-Kutta 4 (RK4)", value=True)
     show_exact = st.checkbox("Exact Solution", value=True)
 
     st.markdown("💡 **Pro Features**")
-    show_field = st.checkbox("Display Slope Vector Field", value=True)
+    # Setat default pe False conform cerinței
+    show_field = st.checkbox("Display Slope Vector Field", value=False)
 
     selected_methods = [
         m
@@ -96,8 +104,13 @@ with st.sidebar:
         if show
     ]
 
-# Procesarea Datelor și Randarea
-if st.button("🚀 Execute Analysis", type="primary", use_container_width=True):
+# Utilizarea parametrului `icon` nativ pentru butoane
+if st.button(
+    "Execute Analysis",
+    type="primary",
+    use_container_width=True,
+    icon=":material/rocket_launch:",
+):
     try:
         solver = ODESolver(func_str, x0, y0, x_end, steps)
         x_vals = solver.get_x_grid()
@@ -131,13 +144,21 @@ if st.button("🚀 Execute Analysis", type="primary", use_container_width=True):
                         results["Exact"] - results[method]
                     )
 
+        # Tab-uri cu iconițe Material
         tab1, tab2, tab3 = st.tabs(
-            ["🎥 Visual Animation", "📊 Data Matrix", "📉 Error Analysis"]
+            [
+                ":material/movie: Visual Animation",
+                ":material/table_chart: Data Matrix",
+                ":material/show_chart: Error Analysis",
+            ]
         )
 
         with tab1:
             if not selected_methods:
-                st.warning("Enable at least one method from the sidebar.")
+                st.warning(
+                    "Enable at least one method from the sidebar.",
+                    icon=":material/warning:",
+                )
             else:
                 fig = build_cinematic_plot(
                     x_vals, results, selected_methods, solver.f, show_field
@@ -149,22 +170,24 @@ if st.button("🚀 Execute Analysis", type="primary", use_container_width=True):
             col1, col2 = st.columns(2)
             with col1:
                 st.download_button(
-                    "📥 Export CSV",
+                    "Export CSV",
                     data=df_results.to_csv(index=False).encode("utf-8"),
                     file_name="ode.csv",
                     mime="text/csv",
                     use_container_width=True,
+                    icon=":material/download:",
                 )
             with col2:
                 output = io.BytesIO()
                 with pd.ExcelWriter(output, engine="openpyxl") as writer:
                     df_results.to_excel(writer, index=False)
                 st.download_button(
-                    "📥 Export Excel",
+                    "Export Excel",
                     data=output.getvalue(),
                     file_name="ode.xlsx",
                     mime="application/vnd.ms-excel",
                     use_container_width=True,
+                    icon=":material/table:",
                 )
 
         with tab3:
@@ -196,7 +219,10 @@ if st.button("🚀 Execute Analysis", type="primary", use_container_width=True):
                 )
                 st.plotly_chart(fig_err, theme=None, use_container_width=True)
             else:
-                st.warning("Exact solution is required for error analysis.")
+                st.warning(
+                    "Exact solution is required for error analysis.",
+                    icon=":material/error:",
+                )
 
     except Exception as e:
-        st.error(f"Computation Error: {str(e)}")
+        st.error(f"Computation Error: {str(e)}", icon=":material/bug_report:")
