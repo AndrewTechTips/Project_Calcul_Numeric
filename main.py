@@ -4,11 +4,9 @@ import numpy as np
 import sympy as sp
 import io
 
-# Importuri din pachetele noastre modulare
-from ui.styles import apply_premium_styles
-from core.solver import ODESolver
-from utils.data_loader import DataLoader
-from utils.plotter import build_cinematic_plot
+from ui import apply_premium_styles
+from core import ODESolver
+from utils import DataLoader, build_cinematic_plot
 import plotly.graph_objects as go
 
 # Configurare Pagină și UI
